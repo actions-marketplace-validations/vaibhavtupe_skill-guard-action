@@ -38,6 +38,10 @@ inputs:
     description: Python version to use
     required: false
     default: "3.11"
+  embeddings:
+    description: "Install embeddings dependencies (torch + skill-guard[embeddings])"
+    required: false
+    default: "false"
 
 outputs:
   exit-code:
@@ -58,10 +62,20 @@ runs:
     - name: Install skill-guard
       shell: bash
       run: |
-        if [ -n "${{ inputs.version }}" ]; then
-          pip install "skill-guard==${{ inputs.version }}"
+        if [ "${{ inputs.embeddings }}" = "true" ]; then
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
+          if [ -n "${{ inputs.version }}" ]; then
+            pip install "skill-guard[embeddings]==${{ inputs.version }}"
+          else
+            pip install "skill-guard[embeddings]"
+          fi
         else
-          pip install skill-guard
+          if [ -n "${{ inputs.version }}" ]; then
+            pip install "skill-guard==${{ inputs.version }}"
+          else
+            pip install skill-guard
+          fi
         fi
 
     - name: Run skill-guard

@@ -11,6 +11,17 @@
     path: ./my-skill       # path to skill directory
 ```
 
+### Embeddings-enabled usage
+
+```yaml
+- uses: vaibhavtupe/skill-guard-action@v1
+  with:
+    command: conflict
+    path: ./skills/my-skill
+    against: ./skills
+    embeddings: "true"
+```
+
 ## Inputs
 
 | Input | Required | Default | Description |
@@ -24,6 +35,7 @@
 | `fail-on-warning` | No | `false` | Exit non-zero on warnings |
 | `version` | No | latest | skill-guard version to pin |
 | `python-version` | No | `3.11` | Python version |
+| `embeddings` | No | `false` | Install embeddings deps (torch + skill-guard[embeddings]) |
 
 ## Outputs
 
