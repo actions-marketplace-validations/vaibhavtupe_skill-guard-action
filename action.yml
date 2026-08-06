@@ -1,5 +1,5 @@
 name: skill-guard
-description: Quality gate for Agent Skills — validate, secure, conflict-check, and eval your skills in CI.
+description: Quality gate for Agent Skills — validate, secure, and conflict-check your skills in CI.
 author: vaibhavtupe
 branding:
   icon: "shield"
@@ -7,18 +7,14 @@ branding:
 
 inputs:
   command:
-    description: "Command to run: validate, secure, conflict, check, test"
+    description: "Command to run: validate, secure, conflict, check"
     required: false
     default: check
   path:
     description: Path to the skill directory
     required: true
   against:
-    description: Path to skills directory or catalog for conflict detection
-    required: false
-    default: ""
-  endpoint:
-    description: OpenAI-compatible agent endpoint for eval tests
+    description: Path to skills directory or catalog YAML for conflict detection
     required: false
     default: ""
   config:
@@ -85,16 +81,28 @@ runs:
       id: run
       shell: bash
       run: |
+        # skill-guard has no --fail-on-warning CLI flag; that behavior is
+        # config-driven (ci.fail_on_warning in skill-guard.yaml). When the
+        # input is set, merge it into a temp config (on top of the caller's
+        # --config, if any) rather than passing an invalid flag.
+        CONFIG_ARG=""
+        if [ "${{ inputs.fail-on-warning }}" = "true" ]; then
+          MERGED_CONFIG="${{ runner.temp }}/skill-guard-merged.yaml"
+          python3 "${{ github.action_path }}/scripts/merge_fail_on_warning.py" \
+            "${{ inputs.config }}" "$MERGED_CONFIG"
+          CONFIG_ARG="$MERGED_CONFIG"
+        elif [ -n "${{ inputs.config }}" ]; then
+          CONFIG_ARG="${{ inputs.config }}"
+        fi
+
         ARGS="${{ inputs.command }} ${{ inputs.path }}"
         [ -n "${{ inputs.against }}" ] && ARGS="$ARGS --against ${{ inputs.against }}"
-        [ -n "${{ inputs.endpoint }}" ] && ARGS="$ARGS --endpoint ${{ inputs.endpoint }}"
-        [ -n "${{ inputs.config }}" ] && ARGS="$ARGS --config ${{ inputs.config }}"
+        [ -n "$CONFIG_ARG" ] && ARGS="$ARGS --config $CONFIG_ARG"
         [ -n "${{ inputs.format }}" ] && ARGS="$ARGS --format ${{ inputs.format }}"
-        [ "${{ inputs.fail-on-warning }}" = "true" ] && ARGS="$ARGS --fail-on-warning"
 
         if [ "${{ inputs.format }}" = "markdown" ]; then
           REPORT="${{ runner.temp }}/skill-guard-report.md"
-          skill-guard $ARGS --output "$REPORT" || EXIT_CODE=$?
+          skill-guard $ARGS > "$REPORT" || EXIT_CODE=$?
           echo "report-path=$REPORT" >> $GITHUB_OUTPUT
         else
           skill-guard $ARGS || EXIT_CODE=$?

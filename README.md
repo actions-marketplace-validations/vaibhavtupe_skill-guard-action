@@ -7,7 +7,7 @@
 ```yaml
 - uses: vaibhavtupe/skill-guard-action@v1
   with:
-    command: validate      # validate | secure | conflict | check | test
+    command: validate      # validate | secure | conflict | check
     path: ./my-skill       # path to skill directory
 ```
 
@@ -26,10 +26,9 @@
 
 | Input | Required | Default | Description |
 |---|---|---|---|
-| `command` | No | `check` | Command to run: `validate`, `secure`, `conflict`, `check`, `test` |
+| `command` | No | `check` | Command to run: `validate`, `secure`, `conflict`, `check` |
 | `path` | Yes | — | Path to skill directory |
-| `against` | No | `""` | Skills dir or catalog for conflict detection |
-| `endpoint` | No | `""` | OpenAI-compatible agent endpoint for eval tests |
+| `against` | No | `""` | Skills dir or catalog YAML for conflict detection |
 | `config` | No | `""` | Path to `skill-guard.yaml` |
 | `format` | No | `text` | Output format: `text`, `json`, `markdown` |
 | `fail-on-warning` | No | `false` | Exit non-zero on warnings |
@@ -47,12 +46,10 @@
 ## Exit Codes
 
 - `0` success
-- `1` validation/security failures  
+- `1` validation/security failures
 - `2` warnings only (when `fail_on_warning` is false)
 - `3` config error
 - `4` parse error
-- `5` hook script failure
-- `6` health check timeout
 
 ## Full workflow example
 
